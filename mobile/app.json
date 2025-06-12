@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Raptor Suite Mobile",
+    "slug": "raptor-suite-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -14,9 +14,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.raptorsuite.mobile",
-      "googleServicesFile": "./ios/GoogleService-Info.plist",
-      "infoPlist": {
-        "ITSApUsesNonExemptEncryption": false
+      "config": {
+        "googleSignIn": {
+          "reservedClientId": "305267868516-kjv6j54a0f8df9k345h82j8l3g8j4.apps.googleusercontent.com"
+        }
       }
     },
     "android": {
@@ -25,33 +26,39 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.raptorsuite.mobile",
-      "googleServicesFile": "./android/app/google-services.json",
-      "usesCleartextTraffic": false
+      "config": {
+        "googleSignIn": {
+          "apiKey": "AIzaSyDr94-d2Fv_QM4jE01_p_r_w_R-E-k5K-N5p4xQ"
+          // Note: Android often uses google-services.json for config, but Expo can use this for specific modules.
+          // The main Firebase config will be in firebase.json or app.js initialization for Expo.
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "useFrameworks": "static",
-            "flipper": false
-          },
-          "android": {
-            "usesCleartextTraffic": false
-          }
-        }
-      ]
-    ],
     "extra": {
       "eas": {
-        "projectId": "ae219c63-a676-4a0d-80ce-9584c0d4d8fb"
+        "projectId": "raptor-suite"
+      },
+      "firebaseConfig": {
+        "apiKey": "AIzaSyDr94-d2Fv_QM4jE01_p_r_w_R-E-k5K-N5p4xQ",
+        "authDomain": "raptor-suite.firebaseapp.com",
+        "projectId": "raptor-suite",
+        "storageBucket": "raptor-suite.appspot.com",
+        "messagingSenderId": "305267868516",
+        "appId": "1:305267868516:web:6e187a50269f82d2cb2d0b"
+        // Note: Mobile apps often use separate appIds for iOS/Android, even if other keys are shared.
+        // The above appId is specifically for the web app's client config within Expo.
+        // For native iOS/Android, Expo often uses google-services.json (Android) and GoogleService-Info.plist (iOS).
       }
     },
-    "cli": {
-      "appVersionSource": "remote"
-    }
+    "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      "@react-native-firebase/firestore",
+      "@react-native-google-signin/google-signin",
+      "expo-build-properties"
+    ]
   }
 }
