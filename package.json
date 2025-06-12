@@ -1,0 +1,36 @@
+{
+  "name": "raptor-suite",
+  "version": "0.0.1",
+  "description": "Firebase-first administrator tool for family creative collaboration.",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --workspace=web",
+    "build": "npm run build --workspace=web",
+    "deploy": "firebase deploy",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:all": "npm run deploy",
+    "start:functions": "npm run serve --workspace=functions",
+    "install:all": "npm install && npm install --workspace=functions && npm install --workspace=web",
+    "clean:all": "rm -rf node_modules functions/node_modules web/node_modules"
+  },
+  "workspaces": [
+    "functions",
+    "web",
+    "mobile"
+  ],
+  "engines": {
+    "node": "18"
+  },
+  "keywords": [
+    "Firebase",
+    "AI",
+    "Creativity",
+    "Collaboration",
+    "Family",
+    "Web",
+    "Mobile"
+  ],
+  "author": "Raptor Suite Team",
+  "license": "ISC"
+}
