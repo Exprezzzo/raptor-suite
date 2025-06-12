@@ -1,0 +1,19 @@
+{
+  "cli": {
+    "version": ">= 5.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": false,
+        "image": "latest",
+        "node": "18.18.0",
+        "cache": {
+          "key": "ios-dev-cache-v3"
+        }
+      }
+    }
+  }
+}
