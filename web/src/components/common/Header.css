@@ -1,26 +1,124 @@
-/* Add this to raptor-suite/web/src/components/common/Header.css */
-.logout-button {
-  background-color: #dc3545; /* Red for logout */
+/* raptor-suite/web/src/components/common/Header.css */
+
+.app-header {
+  background-color: #282c34;
+  padding: 15px 30px;
   color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.app-logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #61dafb;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.app-logo:hover {
+  color: #a8dadc;
+}
+
+.main-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+.main-nav li {
+  margin-left: 25px;
+}
+
+.main-nav a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.1em;
+  padding: 5px 0;
+  position: relative;
+}
+
+.main-nav a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -5px;
+  left: 0;
+  background-color: #61dafb;
+  transition: width 0.3s ease;
+}
+
+.main-nav a:hover::after,
+.main-nav a.active::after { /* You can add an 'active' class for current page */
+  width: 100%;
+}
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between buttons/text */
+}
+
+.user-actions .login-button,
+.user-actions .logout-button {
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 1em;
   transition: background-color 0.3s ease;
-  margin-left: 15px; /* Spacing from username/email */
 }
 
-.logout-button:hover {
+.user-actions .login-button {
+  background-color: #4CAF50; /* Green */
+  color: white;
+}
+
+.user-actions .login-button:hover {
+  background-color: #45a049;
+}
+
+.user-actions .logout-button {
+  background-color: #dc3545; /* Red for logout */
+  color: white;
+}
+
+.user-actions .logout-button:hover {
   background-color: #c82333;
 }
 
-/* Dark mode adjustments for logout button */
+/* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
-  .logout-button {
+  .app-header {
+    background-color: #1a1a1a;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  .app-logo {
+    color: #90caf9;
+  }
+  .main-nav a::after {
+    background-color: #90caf9;
+  }
+  .user-actions .login-button {
+    background-color: #5cb85c; /* Slightly lighter green for dark mode */
+  }
+  .user-actions .login-button:hover {
+    background-color: #4cae4c;
+  }
+  .user-actions .logout-button {
     background-color: #e65c5c;
   }
-  .logout-button:hover {
+  .user-actions .logout-button:hover {
     background-color: #d14747;
   }
 }
