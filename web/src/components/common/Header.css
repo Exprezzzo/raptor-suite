@@ -1,0 +1,26 @@
+/* Add this to raptor-suite/web/src/components/common/Header.css */
+.logout-button {
+  background-color: #dc3545; /* Red for logout */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s ease;
+  margin-left: 15px; /* Spacing from username/email */
+}
+
+.logout-button:hover {
+  background-color: #c82333;
+}
+
+/* Dark mode adjustments for logout button */
+@media (prefers-color-scheme: dark) {
+  .logout-button {
+    background-color: #e65c5c;
+  }
+  .logout-button:hover {
+    background-color: #d14747;
+  }
+}

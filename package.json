@@ -1,36 +1,28 @@
 {
-  "name": "raptor-suite",
-  "version": "0.0.1",
-  "description": "Firebase-first administrator tool for family creative collaboration.",
-  "private": true,
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
   "scripts": {
-    "dev": "npm run dev --workspace=web",
-    "build": "npm run build --workspace=web",
-    "deploy": "firebase deploy",
-    "deploy:hosting": "firebase deploy --only hosting",
-    "deploy:functions": "firebase deploy --only functions",
-    "deploy:all": "npm run deploy",
-    "start:functions": "npm run serve --workspace=functions",
-    "install:all": "npm install && npm install --workspace=functions && npm install --workspace=web",
-    "clean:all": "rm -rf node_modules functions/node_modules web/node_modules"
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
   },
-  "workspaces": [
-    "functions",
-    "web",
-    "mobile"
-  ],
   "engines": {
     "node": "18"
   },
-  "keywords": [
-    "Firebase",
-    "AI",
-    "Creativity",
-    "Collaboration",
-    "Family",
-    "Web",
-    "Mobile"
-  ],
-  "author": "Raptor Suite Team",
-  "license": "ISC"
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "firebase-functions": "^4.8.0",
+    "cors": "^2.8.5",
+    "stripe": "^14.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.9.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
 }

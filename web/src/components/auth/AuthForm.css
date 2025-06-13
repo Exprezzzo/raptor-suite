@@ -1,0 +1,113 @@
+/* raptor-suite/web/src/components/auth/AuthForm.css */
+
+.auth-form {
+  background-color: #ffffff;
+  padding: 30px 40px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: left;
+}
+
+.auth-form h2 {
+  color: #333;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 2em;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: calc(100% - 20px); /* Account for padding */
+  padding: 12px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1em;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.form-group input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+.auth-form button {
+  width: 100%;
+  padding: 12px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.auth-form button:hover {
+  background-color: #0056b3;
+}
+
+.auth-form button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.auth-error-message {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 0.9em;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .auth-form {
+    background-color: #2e2e2e;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+  .auth-form h2 {
+    color: #f0f0f0;
+  }
+  .form-group label {
+    color: #ccc;
+  }
+  .form-group input {
+    background-color: #3a3a3a;
+    border-color: #555;
+    color: #f0f0f0;
+  }
+  .form-group input:focus {
+    border-color: #8ab4f8;
+    box-shadow: 0 0 0 3px rgba(138, 180, 248, 0.25);
+  }
+  .auth-form button {
+    background-color: #6a0dad; /* A bit more purple for dark mode buttons */
+  }
+  .auth-form button:hover {
+    background-color: #57008a;
+  }
+  .auth-error-message {
+    color: #ffb3b3;
+    background-color: #a04040;
+    border-color: #b05050;
+  }
+}

@@ -1,0 +1,53 @@
+/* raptor-suite/web/src/App.css */
+
+/* Main application container for layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ensures the container takes full viewport height */
+  background-color: #f0f2f5; /* Light background for the overall app */
+}
+
+/* Styles for the main content area */
+.app-main-content {
+  flex-grow: 1; /* Allows main content to take up available space */
+  padding: 20px; /* Padding around the content */
+  max-width: 1200px; /* Max width for content, keeps it centered */
+  margin: 0 auto; /* Centers the content */
+  width: 100%; /* Ensures it takes full width up to max-width */
+}
+
+/* Basic styling for body and root to ensure full height for app-container */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* Loading screen styles for when Firebase auth state is being determined */
+.app-loading-screen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 1.5em;
+  color: #555;
+  background-color: #ffffff; /* White background for loading */
+}
+
+/* Dark mode adjustments for App.css */
+@media (prefers-color-scheme: dark) {
+  .app-container {
+    background-color: #1a1a1a; /* Dark background for the overall app */
+  }
+  .app-main-content {
+    background-color: #2c2c2c; /* A slightly lighter dark for main content */
+    color: #f0f0f0;
+  }
+  .app-loading-screen {
+    color: #bbb;
+    background-color: #242424; /* Dark background for loading */
+  }
+}

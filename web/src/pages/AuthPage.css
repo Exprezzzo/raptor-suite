@@ -1,0 +1,44 @@
+/* raptor-suite/web/src/pages/AuthPage.css */
+
+.auth-page-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* min-height will be managed by app-main-content flex-grow: 1 */
+  padding: 20px;
+  /* background-color handled by app-container / app-main-content */
+  text-align: center;
+  flex-grow: 1; /* Ensure it expands to fill available space within main content */
+}
+
+.auth-switch-text {
+  margin-top: 20px;
+  font-size: 1.0em;
+  color: #666;
+}
+
+.auth-link {
+  color: #007bff;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+}
+
+.auth-link:hover {
+  color: #0056b3;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .auth-switch-text {
+    color: #bbb;
+  }
+  .auth-link {
+    color: #8ab4f8;
+  }
+  .auth-link:hover {
+    color: #a0c3f5;
+  }
+}

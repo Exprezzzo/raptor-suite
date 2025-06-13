@@ -1,30 +1,57 @@
-import React from 'react';
-import VoiceModePanel from './components/VoiceModePanel'; // Import your VoiceModePanel
-import { useAuth } from './contexts/AuthContext.jsx'; // To check user login status
+// raptor-suite/web/src/App.jsx (UPDATED)
+
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth'; // Firebase v9 modular API
+
+import './index.css'; // Global CSS for the web app
+import './App.css'; // Specific App component CSS
+import Header from './components/common/Header';
+import Footer from './components/common/Footer';
+
+// Import Firebase (just to ensure it's initialized, though services are exported from firebase.js)
+import { auth } from './firebase'; // Import auth service
+
+// Import the new route components
+import AuthRoutes from './routes/AuthRoutes';
+import MainRoutes from './routes/MainRoutes';
 
 function App() {
-  const { user, loading } = useAuth(); // Get user and loading state from AuthContext
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Listen for Firebase authentication state changes
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+
+    // Clean up the listener when the component unmounts
+    return () => unsubscribe();
+  }, []);
 
   if (loading) {
-    return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Loading authentication...</div>;
+    return (
+      <div className="app-loading-screen">
+        <p>Loading application...</p>
+        {/* You could add a spinner or more elaborate loading UI here */}
+      </div>
+    );
   }
 
-  // Simple conditional rendering for demonstration: show VoiceModePanel if logged in
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
-      {user ? (
-        <div className="w-full max-w-2xl">
-          <h1 className="text-3xl font-bold text-center mb-6">Raptor Suite</h1>
-          <VoiceModePanel projectId="my-test-project" /> {/* Pass a dummy project ID */}
-        </div>
-      ) : (
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-4">Please Log In to Use Raptor Suite</h2>
-          <p className="text-gray-400">Authentication is required for full functionality.</p>
-          {/* In a real app, you'd have a login button/form here */}
-        </div>
-      )}
-    </div>
+    <Router>
+      <div className="app-container">
+        <Header />
+
+        <main className="app-main-content">
+          {user ? <MainRoutes /> : <AuthRoutes />}
+        </main>
+
+        <Footer />
+      </div>
+    </Router>
   );
 }
 

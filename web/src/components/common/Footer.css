@@ -1,0 +1,48 @@
+/* raptor-suite/web/src/components/common/Footer.css */
+
+.app-footer {
+  background-color: #333;
+  color: white;
+  padding: 20px 30px;
+  text-align: center;
+  width: 100%;
+  margin-top: auto; /* Pushes footer to the bottom */
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.app-footer p {
+  font-size: 0.9em;
+  margin-bottom: 10px;
+  color: #ccc;
+}
+
+.footer-links a {
+  color: #61dafb;
+  text-decoration: none;
+  margin: 0 15px;
+  font-size: 0.9em;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: #a8dadc;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .app-footer {
+    background-color: #1a1a1a;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.3);
+  }
+  .app-footer p {
+    color: #aaa;
+  }
+  .footer-links a {
+    color: #90caf9;
+  }
+}
