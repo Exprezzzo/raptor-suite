@@ -1,29 +1,16 @@
-// raptor-suite/web/src/components/common/Header.jsx (UPDATED)
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { onAuthStateChanged, signOut } from 'firebase/auth'; // Firebase v9 modular API
-import { auth } from '../../firebase'; // Import auth service
+import { useAuth } from '../../contexts/AuthContext'; // Import useAuth hook
 import './Header.css';
 
 const Header = () => {
-  const [user, setUser] = useState(null);
+  const { user, logout } = useAuth(); // Destructure user and logout from context
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Listen for Firebase authentication state changes
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-
-    // Clean up the listener when the component unmounts
-    return () => unsubscribe();
-  }, []);
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
-      navigate('/signin'); // Redirect to sign-in page after logout
+      await logout(); // Call logout from context
+      navigate('/signin');
     } catch (error) {
       console.error("Error signing out:", error);
       alert("Failed to log out. Please try again.");
@@ -34,12 +21,13 @@ const Header = () => {
     <header className="app-header">
       <div className="header-content">
         <Link to="/" className="app-logo">
-          Raptor Suite Admin
+          🦅 Raptor Suite
         </Link>
         <nav className="main-nav">
-          {user && ( // Only show main navigation links if user is logged in
+          {user && ( // Only show navigation links if a user is logged in
             <ul>
               <li><Link to="/">Dashboard</Link></li>
+              <li><Link to="/workspace">Workspace</Link></li> {/* Added Workspace link per integration plan */}
               <li><Link to="/projects">Projects</Link></li>
               <li><Link to="/users">Users</Link></li>
               <li><Link to="/billing">Billing</Link></li>
@@ -48,12 +36,30 @@ const Header = () => {
           )}
         </nav>
         <div className="user-actions">
-          {user ? (
-            <button className="logout-button" onClick={handleLogout}>
-              Logout ({user.email})
-            </button>
-          ) : (
-            <button className="login-button" onClick={() => navigate('/signin')}>
+          {user ? ( // Display user's email and Logout button if user is logged in
+            <div className="flex items-center gap-3">
+              <span className="hidden sm:block text-sm text-gray-300">
+                {user.displayName || user.email}
+              </span>
+              {user.photoURL && ( // Display photo if available
+                <img
+                  src={user.photoURL}
+                  alt={user.displayName || 'User'}
+                  className="h-8 w-8 rounded-full ring-2 ring-purple-500/50"
+                />
+              )}
+              <button
+                onClick={handleLogout}
+                className="logout-button"
+              >
+                Logout
+              </button>
+            </div>
+          ) : ( // Display Login / Register button if no user is logged in
+            <button 
+              onClick={() => navigate('/signin')}
+              className="login-button"
+            >
               Login / Register
             </button>
           )}

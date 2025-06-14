@@ -1,124 +1,91 @@
-// universalAI: AI Router for Raptor Suite
-// File: /functions/src/universalAI.ts
+// functions/src/universalAI.ts (Simplified for compilation)
 
 import * as functions from 'firebase-functions';
-import { GoogleGenerativeAI } from '@google/generative-ai'; // For Gemini
-import OpenAI from 'openai'; // For OpenAI
-import Anthropic from '@anthropic-ai/sdk'; // For Anthropic Claude
+// Assuming you have your AI models initialized elsewhere and imported here
+// import { GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai'; // Example import if using Gemini JS SDK
 
-// Make sure your API keys are securely stored in Firebase Functions environment config
-// To set: firebase functions:config:set openai.key="YOUR_OPENAI_KEY" anthropic.key="YOUR_ANTHROPIC_KEY" gemini.key="YOUR_GEMINI_KEY"
-// To get: firebase functions:config:get
-// NOTE: For security, never hardcode API keys in your code.
-const config = functions.config();
-
-const openai = new OpenAI({
-  apiKey: config.openai?.key,
-});
-
-const anthropic = new Anthropic({
-  apiKey: config.anthropic?.key,
-});
-
-// Initialize Gemini (Google Generative AI)
-const genAI = new GoogleGenerativeAI(config.gemini?.key);
-
-export interface AIProcessOptions {
-  prompt: string;
-  provider?: 'openai' | 'anthropic' | 'gemini'; // Default to gemini if not specified
-  context?: { [key: string]: any };
-  model?: string;
+// Define simple interfaces to avoid TypeScript errors for now.
+// You might have more complex interfaces defined in another file (e.g., types.ts)
+interface AIRequest {
+  prompt: string; // Assuming a 'prompt' property
+  // Add other properties if your AI request expects them (e.g., modelConfig, safetySettings)
 }
 
-export interface AIProcessResult {
-  result: string;
-  provider: string;
-  model: string;
-  usage?: any; // For token counts etc.
+interface AIResponse {
+  generatedText: string;
+  tokensUsed: number;
+  // Add other properties as needed based on your actual AI model's response
 }
 
-export class UniversalAI {
-  static async process(options: AIProcessOptions): Promise<AIProcessResult> {
-    const { prompt, provider = 'gemini', context, model } = options;
-
-    let aiResponse: string = '';
-    let usedProvider: string = provider;
-    let usedModel: string = model || 'default';
-    let usageData: any = {};
-
-    functions.logger.log(`UniversalAI: Processing with provider: ${provider}, context:`, context);
-
-    try {
-      switch (provider) {
-        case 'openai':
-          usedModel = model || 'gpt-4o'; // Default to gpt-4o for best results
-          const openaiCompletion = await openai.chat.completions.create({
-            model: usedModel,
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.7,
-            max_tokens: 1000,
-            top_p: 1,
-            frequency_penalty: 0,
-            presence_penalty: 0,
-          });
-          aiResponse = openaiCompletion.choices[0].message?.content || 'No response from OpenAI.';
-          usageData = openaiCompletion.usage;
-          break;
-
-        case 'anthropic':
-          usedModel = model || 'claude-3-opus-20240229'; // Default to Claude 3 Opus
-          const anthropicMessage = await anthropic.messages.create({
-            model: usedModel,
-            max_tokens: 1000,
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.7,
-          });
-          aiResponse = typeof anthropicMessage.content === 'string' ? anthropicMessage.content : anthropicMessage.content[0]?.text || 'No response from Anthropic.';
-          // Anthropic usage is typically in the message object or response headers.
-          // For simplicity, direct token usage isn't always readily available here without parsing.
-          usageData = anthropicMessage.usage; // Example, depends on SDK version.
-          break;
-
-        case 'gemini':
-        default:
-          usedModel = model || 'gemini-pro'; // Default to Gemini Pro
-          const geminiModel = genAI.getGenerativeModel({ model: usedModel });
-          const result = await geminiModel.generateContent(prompt);
-          const geminiResponse = await result.response;
-          aiResponse = geminiResponse.text() || 'No response from Gemini.';
-          // Gemini usage is typically in the response metadata.
-          usageData = geminiResponse.usageMetadata; // Example, depends on SDK version.
-          break;
-      }
-    } catch (error: any) {
-      functions.logger.error(`Error processing AI request for provider ${provider}:`, error);
-      aiResponse = `I'm sorry, I encountered an error with the AI: ${error.message}. Please try again.`;
-    }
-
-    return {
-      result: aiResponse,
-      provider: usedProvider,
-      model: usedModel,
-      usage: usageData
-    };
+// Placeholder for your actual AI model interaction logic
+async function callGenerativeAI(prompt: string): Promise<AIResponse> {
+  // --- Replace this with your actual Gemini API call logic ---
+  // Example using fetch for Gemini API (assuming gemini-2.0-flash model)
+  // Ensure you have an API key (e.g., from environment variables)
+  const API_KEY = functions.config().gemini?.api_key || ""; // Get API key from Firebase config
+  if (!API_KEY) {
+    throw new Error("Gemini API key not configured in Firebase Functions environment.");
   }
-}
 
-// Firebase Cloud Function for Universal AI (HTTP Callable)
-// This defines universalAI as a 1st Gen Cloud Function to avoid 2nd Gen upgrade issues.
-export const universalAI = functions.https.onCall(async (data, context) => {
-  // Ensure the user is authenticated if necessary
-  // if (!context.auth) {
-  //   throw new functions.https.HttpsError('unauthenticated', 'The function must be called while authenticated.');
-  // }
-
-  const options: AIProcessOptions = data;
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+  const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+  const payload = { contents: chatHistory };
 
   try {
-    const result = await UniversalAI.process(options);
-    return { success: true, result: result.result, provider: result.provider, model: result.model };
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Gemini API error response:', errorData);
+      throw new Error(`Gemini API returned error: ${response.status} - ${JSON.stringify(errorData)}`);
+    }
+
+    const result = await response.json();
+
+    // Safely access properties as per Gemini API response structure
+    const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const totalTokenCount = result.usageMetadata?.totalTokenCount || 0; // Directly use totalTokenCount if available
+
+    return {
+      generatedText: generatedText,
+      tokensUsed: totalTokenCount,
+    };
+  } catch (error) {
+    console.error("Error calling Generative AI:", error);
+    throw new Error(`Failed to call Generative AI: ${error}`);
+  }
+  // --- End of actual Gemini API call logic ---
+}
+
+
+// Firebase Callable Function: universalAI
+// This function handles AI requests from your client.
+exports.universalAI = functions.https.onCall(async (data: AIRequest, context) => {
+  // Ensure the user is authenticated if required for this function
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Authentication required for AI requests.');
+  }
+
+  // Validate incoming data
+  if (!data.prompt || typeof data.prompt !== 'string') {
+    throw new functions.https.HttpsError('invalid-argument', 'The request must contain a "prompt" string.');
+  }
+
+  try {
+    const aiResponse = await callGenerativeAI(data.prompt);
+
+    return {
+      status: 'success',
+      generatedText: aiResponse.generatedText,
+      tokensUsed: aiResponse.tokensUsed,
+      // You can add more data from aiResponse if your AIResponse interface expands
+    } as AIResponse; // Cast to AIResponse type if needed
   } catch (error: any) {
-    functions.logger.error('Error calling UniversalAI function:', error);
-    throw new functions.https.HttpsError('internal', error.message, error.details);
+    console.error("Error in universalAI function:", error);
+    throw new functions.https.HttpsError('internal', 'Failed to process AI request.', error.message);
   }
 });

@@ -1,66 +1,110 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { 
+  onAuthStateChanged as firebaseOnAuthStateChanged,
+  signInWithEmailAndPassword as firebaseSignIn,
+  createUserWithEmailAndPassword as firebaseCreateUser,
+  signOut as firebaseSignOut,
+  getAuth,
+  getFirestore,
+  doc,
+  setDoc,
+  serverTimestamp
+} from '../config/firebase'; // Importing from the optimized firebase config
 
-// Your Firebase configuration (from your web/vite.config.js or .env.local)
-// Make sure this matches your actual project config.
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
-};
+const AuthContext = createContext({});
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-// Create the AuthContext
-const AuthContext = createContext();
-
-// Custom hook to use authentication
 export const useAuth = () => useContext(AuthContext);
 
-// AuthProvider component
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Auth functions
-  const signup = (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password);
-  };
-
-  const login = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
-  };
-
-  const logout = () => {
-    return signOut(auth);
-  };
-
-  // Set up listener for auth state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, user => {
-      setCurrentUser(user);
-      setLoading(false);
-    });
-    return unsubscribe; // Cleanup subscription
+    let unsubscribe = null;
+
+    const setupAuthListener = async () => {
+      try {
+        // Get the auth instance asynchronously
+        const authInstance = await getAuth();
+        unsubscribe = await firebaseOnAuthStateChanged(authInstance, (user) => { // Pass authInstance to onAuthStateChanged
+          setUser(user);
+          setLoading(false);
+        });
+      } catch (err) {
+        console.error('Auth initialization error:', err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    setupAuthListener();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
+  const signIn = async (email, password) => {
+    try {
+      setError(null);
+      const userCredential = await firebaseSignIn(email, password);
+      return userCredential.user;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const signUp = async (email, password) => {
+    try {
+      setError(null);
+      const userCredential = await firebaseCreateUser(email, password);
+      
+      // Create user profile in Firestore
+      // Use the lazy-loaded getFirestore and related methods
+      const db = await getFirestore();
+      const userDocRef = await doc(db, 'users', userCredential.user.uid); // Renamed to userDocRef to avoid conflict
+      const timestamp = await serverTimestamp();
+      
+      await setDoc(userDocRef, { // Using userDocRef
+        email: userCredential.user.email,
+        createdAt: timestamp,
+        role: 'user', // Default role
+        displayName: userCredential.user.email ? userCredential.user.email.split('@')[0] : 'New User', // Safe display name
+      });
+
+      return userCredential.user;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      setError(null);
+      await firebaseSignOut();
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
   const value = {
-    currentUser,
-    signup,
-    login,
-    logout,
-    loading, // Expose loading state
+    user,
+    loading,
+    error,
+    signIn,
+    signUp,
+    logout
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children} {/* Only render children if not loading auth state */}
+      {children}
     </AuthContext.Provider>
   );
 };

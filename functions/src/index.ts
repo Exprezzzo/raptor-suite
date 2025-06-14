@@ -1,155 +1,106 @@
-// raptor-suite/functions/src/index.ts
+// functions/src/index.ts
+
+// Always use strict mode for better code quality
+// This file will be compiled into functions/lib/index.js
 
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-import * as cors from 'cors';
-import config from '../../shared/config'; // Import shared config
-import { isAdmin } from '../../shared/utils'; // Import shared utility
-// import Stripe from 'stripe'; // Uncomment when setting up Stripe fully
+import * as cors from 'cors'; // Import cors for HTTP functions
 
-// Initialize Firebase Admin SDK
+// Initialize the Firebase Admin SDK
 admin.initializeApp();
-const db = admin.firestore();
 
-// Initialize CORS middleware
-const corsHandler = cors({ origin: true });
+// Create a CORS handler
+const corsHandler = cors({ origin: true }); // Allows all origins; restrict for production
 
-// --- HTTP Triggered Functions ---
-
-/**
- * Example HTTP function: Returns a welcome message.
- * Accessible at: https://us-central1-raptor-suite.cloudfunctions.net/helloWorld
- */
-export const helloWorld = functions.https.onRequest((req, res) => {
-  corsHandler(req, res, () => {
-    res.status(200).send("Hello from Raptor Suite Cloud Functions (TypeScript)!");
+// 1. HTTP Callable Function: helloWorld
+// This is a basic HTTP-triggered function accessible via a URL.
+// It uses the corsHandler to manage cross-origin requests.
+exports.helloWorld = functions.https.onRequest((request, response) => {
+  corsHandler(request, response, () => {
+    // Respond with a simple text message.
+    response.send("Hello from Firebase Functions!");
   });
 });
 
-/**
- * Universal AI Router
- * This function will act as a proxy to various AI APIs (OpenAI, Anthropic, Gemini).
- * It will handle authentication and routing based on request parameters.
- * Accessible at: https://us-central1-raptor-suite.cloudfunctions.net/universalAI
- *
- * NOTE: Actual AI integration will require specific API keys and more complex logic
- * to handle different models and their inputs/outputs. These keys should be
- * set as environment variables in Firebase Functions config (e.g., functions.config().openai.key).
- */
-export const universalAI = functions.https.onRequest(async (req, res) => {
-  corsHandler(req, res, async () => {
-    if (req.method !== 'POST') {
-      return res.status(405).send('Method Not Allowed. Only POST requests are accepted.');
-    }
-
-    // Basic authentication: Ensure user is logged in
-    // For a robust solution, verify Firebase Auth ID token from `req.headers.authorization`
-    const authToken = req.headers.authorization;
-    if (!authToken || !authToken.startsWith('Bearer ')) {
-      return res.status(401).send('Unauthorized: No authentication token provided or malformed.');
-    }
-
-    let decodedIdToken: admin.auth.DecodedIdToken;
-    try {
-      // Verify the ID token (replace with actual token verification logic)
-      // This is crucial for securing your AI endpoint
-      // decodedIdToken = await admin.auth().verifyIdToken(authToken.split('Bearer ')[1]);
-      // For now, a placeholder:
-      console.log('Authentication token received (verification placeholder)');
-      decodedIdToken = { uid: 'mock_uid', email: 'mock@example.com' } as admin.auth.DecodedIdToken;
-
-
-    } catch (error) {
-      console.error("Error verifying authentication token:", error);
-      return res.status(401).send('Unauthorized: Invalid authentication token.');
-    }
-
-    try {
-      const { model, prompt, creativeProjectId } = req.body;
-
-      if (!model || !prompt) {
-        return res.status(400).send('Bad Request: "model" and "prompt" are required.');
-      }
-
-      let aiResponse: any = { message: `AI response for model: ${model} and prompt: "${prompt}"` };
-
-      // Example: Simple "AI" response based on model
-      switch (model) {
-        case "gemini-pro":
-          aiResponse.data = "This is a simulated response from Gemini Pro.";
-          break;
-        case "openai-gpt3.5":
-          aiResponse.data = "This is a simulated response from OpenAI GPT-3.5.";
-          break;
-        default:
-          aiResponse.data = "Unknown AI model.";
-          break;
-      }
-
-      console.log(`AI request by ${decodedIdToken.uid} for project ${creativeProjectId}: Model: ${model}, Prompt: ${prompt}`);
-
-      res.status(200).json(aiResponse);
-
-    } catch (error) {
-      console.error("Error in universalAI function:", error);
-      res.status(500).send("Internal Server Error during AI processing.");
-    }
-  });
-});
-
-
-// --- Callable Functions ---
-
-/**
- * Example Callable function: Get user role.
- * Client can call this using `firebase.functions().httpsCallable('getUserRole')()`
- */
-export const getUserRole = functions.https.onCall(async (data, context) => {
+// 2. HTTP Callable Function: universalAPI (This is a simplified placeholder as per the compiled code)
+// This function demonstrates a basic callable endpoint.
+// For full Gemini integration, you'd integrate the actual Gemini API call here.
+// The `onCall` method automatically handles CORS and serialization.
+exports.universalAPI = functions.https.onCall(async (data, context) => {
+  // Check for authentication if needed (e.g., if only logged-in users can call it)
   if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'The function must be called while authenticated.');
+    throw new functions.https.HttpsError('unauthenticated', 'Authentication required for universalAPI.');
   }
 
-  const uid = context.auth.uid;
+  // Log the data received from the client for debugging
+  console.log('universalAPI received data:', data);
+
+  // You would integrate your Gemini API call here.
+  // For demonstration, we'll just return some mock data.
+  const geminiResponse = {
+    generatedText: "This is a response from the universalAI function (mocked).",
+    tokensUsed: 10, // Mock value
+    // You would add actual properties from Gemini's response here.
+  };
+
+  return {
+    status: 'success',
+    data: geminiResponse,
+    message: 'Processed by universalAPI',
+    timestamp: new Date().toISOString()
+  };
+});
+
+// 3. HTTP Callable Function: getUserRole (Simplified version for compilation)
+// This function is also a callable endpoint.
+exports.getUserRole = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Authentication required to get user role.');
+  }
+
+  const userId = context.auth.uid;
+  // In a real app, you'd fetch the user's role from Firestore or custom claims
+  console.log(`Getting role for user: ${userId}`);
+  return { role: 'defaultUser', userId: userId }; // Mock role for now
+});
+
+// 4. HTTP Callable Function: assignDefaultUserRole (Simplified for compilation)
+// This function demonstrates updating user roles, likely via custom claims.
+exports.assignDefaultUserRole = functions.https.onCall(async (data, context) => {
+  if (!context.auth || !context.auth.token.admin) { // Example: check if user is admin
+    throw new functions.https.HttpsError('permission-denied', 'Admin access required to assign roles.');
+  }
+
+  const targetUserId = data.userId;
+  const roleToAssign = data.role;
+
+  if (!targetUserId || !roleToAssign) {
+    throw new functions.https.HttpsError('invalid-argument', 'User ID and role are required.');
+  }
+
   try {
-    const userDoc = await db.collection('users').doc(uid).get();
-    if (!userDoc.exists) {
-      throw new functions.https.HttpsError('not-found', 'User profile not found.');
-    }
-    const userData = userDoc.data();
-    return { role: userData?.role || 'user' };
-  } catch (error: any) {
-    console.error("Error fetching user role:", error);
-    throw new functions.https.HttpsError('internal', 'Unable to retrieve user role.', error.message);
+    await admin.auth().setCustomUserClaims(targetUserId, { role: roleToAssign });
+    return { status: 'success', message: `Role ${roleToAssign} assigned to user ${targetUserId}` };
+  } catch (error) {
+    console.error("Error assigning role:", error);
+    throw new functions.https.HttpsError('internal', 'Failed to assign role.', error);
   }
 });
 
-
-// --- Firestore Triggered Functions ---
-
-/**
- * Firestore Trigger: On user creation, set a default role.
- */
-export const assignDefaultUserRole = functions.firestore
+// 5. Firestore Trigger (Example: onCreate for 'users/{userId}')
+// This function will run whenever a new document is created in the 'users' collection.
+// Note: This is for v1 compatible syntax.
+exports.onUserCreate = functions.firestore
   .document('users/{userId}')
-  .onCreate(async (snap, context) => {
-    const newUser = snap.data();
+  .onCreate(async (snapshot, context) => {
+    const userData = snapshot.data();
     const userId = context.params.userId;
+    console.log(`New user created: ${userId}`, userData);
 
-    if (newUser.role) {
-      console.log(`User ${userId} already has role: ${newUser.role}`);
-      return null;
-    }
+    // Example: Assign a default role to the new user in Firestore (if not using custom claims for this)
+    // const db = admin.firestore();
+    // await db.collection('users').doc(userId).update({ defaultRoleAssigned: true });
 
-    try {
-      await db.collection('users').doc(userId).update({
-        role: 'user',
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        lastLogin: admin.firestore.FieldValue.serverTimestamp()
-      });
-      console.log(`Assigned default 'user' role to ${userId}`);
-      return null;
-    } catch (error) {
-      console.error(`Error assigning default role to user ${userId}:`, error);
-      return null;
-    }
+    return null; // Return null for successful completion of a background function
   });

@@ -1,30 +1,33 @@
-// raptor-suite/web/src/firebase.js
+// Re-export everything from the optimized config
+export * from './config/firebase.js'; // ENSURE THIS IS .js
 
+// For backward compatibility, export initialized instances
+// Note: Components should be updated to use the lazy-loaded versions from './config/firebase'
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
-import { getFunctions } from 'firebase/functions';
-import config from '../../shared/config'; // Import shared config
+import { getAuth as getAuthInstance } from 'firebase/auth';
+import { getFirestore as getFirestoreInstance } from 'firebase/firestore';
+import { getStorage as getStorageInstance } from 'firebase/storage';
+import { getFunctions as getFunctionsInstance } from 'firebase/functions';
 
-// Your web app's Firebase configuration
+// Your Firebase project configuration (from your Firebase Console)
 const firebaseConfig = {
-  apiKey: "AIzaSyBw4cMzV0LzPJhl71nIOz3f92zLsZC8Hs4", // Your actual API Key
+  apiKey: "AIzaSyBw4cMzV0LzPJhl71nlOz3f92zLsZC8Hs4",
   authDomain: "raptor-suite.firebaseapp.com",
   projectId: "raptor-suite",
-  storageBucket: "raptor-suite.firebasestorage.app", // Corrected storageBucket domain
+  storageBucket: "raptor-suite.appspot.com",
   messagingSenderId: "277123240771",
-  appId: "1:277123240771:web:b7ab5ffa029579f04115f6"
-  // measurementId: "YOUR_MEASUREMENT_ID" // Optional, if using Analytics
+  appId: "1:277123240771:web:3802e33f088dc2dd563191"
 };
 
-// Initialize Firebase
+// Initialize the main Firebase app instance
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
-export const functions = getFunctions(app, 'us-central1'); // Specify region for functions
+// These exports are for backward compatibility
+// Components should gradually be updated to use the lazy-loaded `getAuth()`, `getFirestore()`, etc.,
+// from './config/firebase' to leverage performance benefits.
+export const auth = getAuthInstance(app);
+export const db = getFirestoreInstance(app);
+export const storage = getStorageInstance(app);
+export const functions = getFunctionsInstance(app, 'us-central1'); // Assuming 'us-central1' is your default functions region
 
 export default app;

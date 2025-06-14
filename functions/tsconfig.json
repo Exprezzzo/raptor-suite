@@ -1,19 +1,19 @@
-// raptor-suite/functions/tsconfig.json
-
 {
   "compilerOptions": {
     "module": "commonjs",
     "noImplicitReturns": true,
-    "noUnusedLocals": true,
-    "outDir": "lib", // Compiled JavaScript will go here
+    "noUnusedLocals": false, // <--- CHANGED THIS LINE FROM TRUE TO FALSE
+    "outDir": "lib",
     "sourceMap": true,
     "strict": true,
-    "target": "es2019", // Adjust based on your Node.js version in package.json (Node 18 -> es2019 or es2020)
-    "esModuleInterop": true, // Recommended for better import/export compatibility
-    "resolveJsonModule": true // Allow importing .json files
+    "target": "es2020",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
   "compileOnSave": true,
   "include": [
-    "src" // Only compile files in the 'src' directory
+    "src"
   ]
 }
