@@ -6,14 +6,12 @@ import CompressionPlugin from 'compression-webpack-plugin';
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import CssMinimizerPlugin from 'css-minimizer-webpack-plugin';
-import cssnano from 'cssnano'; // CRITICAL: Ensure this line is present to define cssnano
+import cssnano from 'cssnano';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const isProduction = process.env.NODE_ENV === 'production';
-
-// Determine output path based on environment
 const outputPath = path.resolve(__dirname, 'dist');
 
 export default {
@@ -21,12 +19,10 @@ export default {
   entry: './src/main.jsx',
   output: {
     path: outputPath,
-    // Add timestamp to production bundles for unique names, avoiding EPERM from old files
     filename: isProduction ? `[name].${Date.now()}.[contenthash:8].js` : '[name].js',
     chunkFilename: isProduction ? `[name].${Date.now()}.[contenthash:8].chunk.js` : '[name].chunk.js',
-    clean: false, // CRITICAL: Disable webpack's built-in clean - we handle it ourselves
-    publicPath: '/', // Base path for all assets
-    // Use unique asset names for images/fonts to avoid conflicts
+    clean: true, // Set to true to clean the dist folder before each build
+    publicPath: '/',
     assetModuleFilename: isProduction ? `assets/[name].${Date.now()}.[hash:8][ext]` : 'assets/[name].[hash:8][ext]'
   },
   resolve: {
@@ -34,7 +30,7 @@ export default {
     alias: {
       '@': path.resolve(__dirname, 'src'),
       '@components': path.resolve(__dirname, 'src/components'),
-      '@pages': path.resolve(__dirname, 'src/pages'), // Corrected path.resolve usage
+      '@pages': path.resolve(__dirname, 'src/pages'),
       '@utils': path.resolve(__dirname, 'src/utils'),
       '@assets': path.resolve(__dirname, 'src/assets'),
     },
@@ -54,7 +50,7 @@ export default {
             plugins: isProduction ? [
               '@babel/plugin-transform-runtime',
               'babel-plugin-transform-remove-console'
-            ] : ['@babel/plugin-transform-runtime'] // Also include runtime in dev for consistency
+            ] : ['@babel/plugin-transform-runtime']
           }
         }
       },
@@ -69,7 +65,7 @@ export default {
               postcssOptions: {
                 plugins: [
                   'autoprefixer',
-                  isProduction && cssnano({ preset: 'default' }) // Use imported cssnano
+                  isProduction && cssnano({ preset: 'default' })
                 ].filter(Boolean)
               }
             }
@@ -78,14 +74,8 @@ export default {
       },
       {
         test: /\.(png|jpg|jpeg|gif|svg|webp)$/i,
-        type: 'asset',
-        parser: {
-          dataUrlCondition: {
-            maxSize: 8 * 1024 // 8kb
-          }
-        },
+        type: 'asset/resource', // Changed to asset/resource to ensure separate files are generated
         generator: {
-          // Add timestamp to asset filenames
           filename: isProduction ? `images/[name].${Date.now()}.[hash:8][ext]` : 'images/[name].[hash:8][ext]'
         }
       },
@@ -93,7 +83,6 @@ export default {
         test: /\.(woff|woff2|eot|ttf|otf)$/i,
         type: 'asset/resource',
         generator: {
-          // Add timestamp to font filenames
           filename: isProduction ? `fonts/[name].${Date.now()}.[hash:8][ext]` : 'fonts/[name].[hash:8][ext]'
         }
       }
@@ -101,19 +90,21 @@ export default {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './index.html',
-      inject: 'body',
-      filename: 'index.html', // Always overwrite index.html
+      template: './index.html', // Path to your source index.html
+      inject: 'body', // Injects all assets into the body
+      filename: 'index.html', // Output filename in the dist folder
+      scriptLoading: 'defer', // Defer script loading for better performance
       minify: isProduction ? {
         removeComments: true,
         collapseWhitespace: true,
         removeAttributeQuotes: true,
         minifyJS: true,
-        minifyCSS: true
-      } : false
+        minifyCSS: true,
+      } : false,
+      // No need for a custom templateContent function here.
+      // We'll ensure the source index.html is clean.
     }),
     isProduction && new MiniCssExtractPlugin({
-      // Add timestamp to CSS filenames
       filename: `[name].${Date.now()}.[contenthash:8].css`,
       chunkFilename: `[id].${Date.now()}.[contenthash:8].css`
     }),
@@ -194,7 +185,8 @@ export default {
         errors: true,
         warnings: false
       }
-    }
+    },
+    static: outputPath, // Serve content from the output path in development
   },
   performance: {
     hints: isProduction ? 'warning' : false,

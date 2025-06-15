@@ -44,6 +44,7 @@ export const useVoiceMode = (projectId = null) => {
     const binaryString = window.atob(base64);
     const len = binaryString.length;
     const bytes = new Uint8Array(len);
+    const base64Decoded = window.atob(base64); // Added this line to explicitly decode
     for (let i = 0; i < len; i++) {
       bytes[i] = binaryString.charCodeAt(i);
     }

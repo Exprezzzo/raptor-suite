@@ -1,91 +1,73 @@
-// functions/src/universalAI.ts (Simplified for compilation)
+// functions/src/universalAI.ts
 
 import * as functions from 'firebase-functions';
-// Assuming you have your AI models initialized elsewhere and imported here
-// import { GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai'; // Example import if using Gemini JS SDK
+import { getSecret } from 'firebase-functions/v2/secrets';
+import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Define simple interfaces to avoid TypeScript errors for now.
-// You might have more complex interfaces defined in another file (e.g., types.ts)
-interface AIRequest {
-  prompt: string; // Assuming a 'prompt' property
-  // Add other properties if your AI request expects them (e.g., modelConfig, safetySettings)
-}
-
-interface AIResponse {
-  generatedText: string;
-  tokensUsed: number;
-  // Add other properties as needed based on your actual AI model's response
-}
-
-// Placeholder for your actual AI model interaction logic
-async function callGenerativeAI(prompt: string): Promise<AIResponse> {
-  // --- Replace this with your actual Gemini API call logic ---
-  // Example using fetch for Gemini API (assuming gemini-2.0-flash model)
-  // Ensure you have an API key (e.g., from environment variables)
-  const API_KEY = functions.config().gemini?.api_key || ""; // Get API key from Firebase config
-  if (!API_KEY) {
-    throw new Error("Gemini API key not configured in Firebase Functions environment.");
-  }
-
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
-  const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-  const payload = { contents: chatHistory };
-
-  try {
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Gemini API error response:', errorData);
-      throw new Error(`Gemini API returned error: ${response.status} - ${JSON.stringify(errorData)}`);
+// This is the actual implementation of your universal AI router
+export const universalAI = functions.https.onCall(async (data, context) => {
+    // Authentication check (as in your previous universalAPI)
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Authentication required for universalAI.');
     }
 
-    const result = await response.json();
+    const textInput = data.textInput;
+    const model = data.model || 'openai'; // Default to openai
+    const temperature = data.temperature || 0.7;
+    const maxTokens = data.maxTokens || 150;
+    const modelEngine = data.modelEngine; // e.g., 'gpt-4', 'claude-3-opus-20240229', 'gemini-pro'
 
-    // Safely access properties as per Gemini API response structure
-    const generatedText = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const totalTokenCount = result.usageMetadata?.totalTokenCount || 0; // Directly use totalTokenCount if available
+    if (!textInput || typeof textInput !== 'string') {
+        throw new functions.https.HttpsError('invalid-argument', 'Text input is required.');
+    }
 
-    return {
-      generatedText: generatedText,
-      tokensUsed: totalTokenCount,
-    };
-  } catch (error) {
-    console.error("Error calling Generative AI:", error);
-    throw new Error(`Failed to call Generative AI: ${error}`);
-  }
-  // --- End of actual Gemini API call logic ---
-}
+    let aiResponse = "I'm sorry, I couldn't process that request.";
 
+    try {
+        switch (model) {
+            case 'openai':
+                const openaiApiKey = await getSecret('OPENAI_API_KEY').then(secret => secret.value());
+                if (!openaiApiKey) throw new Error('OpenAI API key not found.');
+                const openai = new OpenAI({ apiKey: openaiApiKey });
+                const openaiChatCompletion = await openai.chat.completions.create({
+                    model: modelEngine || 'gpt-3.5-turbo',
+                    messages: [{ role: 'user', content: textInput }],
+                    max_tokens: maxTokens,
+                    temperature: temperature,
+                });
+                aiResponse = openaiChatCompletion.choices[0].message.content;
+                break;
+            case 'anthropic':
+                const anthropicApiKey = await getSecret('ANTHROPIC_API_KEY').then(secret => secret.value());
+                if (!anthropicApiKey) throw new Error('Anthropic API key not found.');
+                const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+                const anthropicMessage = await anthropic.messages.create({
+                    model: modelEngine || 'claude-3-opus-20240229',
+                    max_tokens: maxTokens,
+                    temperature: temperature,
+                    messages: [{ role: 'user', content: textInput }],
+                });
+                aiResponse = anthropicMessage.content[0].text;
+                break;
+            case 'gemini':
+                const geminiApiKey = await getSecret('GEMINI_API_KEY').then(secret => secret.value());
+                if (!geminiApiKey) throw new Error('Gemini API key not found.');
+                const genAI = new GoogleGenerativeAI(geminiApiKey);
+                const geminiModel = genAI.getGenerativeModel({ model: modelEngine || 'gemini-pro' });
+                const result = await geminiModel.generateContent(textInput);
+                const geminiResponse = await result.response;
+                aiResponse = geminiResponse.text();
+                break;
+            default:
+                throw new functions.https.HttpsError('invalid-argument', 'Invalid AI model specified.');
+        }
 
-// Firebase Callable Function: universalAI
-// This function handles AI requests from your client.
-exports.universalAI = functions.https.onCall(async (data: AIRequest, context) => {
-  // Ensure the user is authenticated if required for this function
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Authentication required for AI requests.');
-  }
+        return { aiResponse: aiResponse };
 
-  // Validate incoming data
-  if (!data.prompt || typeof data.prompt !== 'string') {
-    throw new functions.https.HttpsError('invalid-argument', 'The request must contain a "prompt" string.');
-  }
-
-  try {
-    const aiResponse = await callGenerativeAI(data.prompt);
-
-    return {
-      status: 'success',
-      generatedText: aiResponse.generatedText,
-      tokensUsed: aiResponse.tokensUsed,
-      // You can add more data from aiResponse if your AIResponse interface expands
-    } as AIResponse; // Cast to AIResponse type if needed
-  } catch (error: any) {
-    console.error("Error in universalAI function:", error);
-    throw new functions.https.HttpsError('internal', 'Failed to process AI request.', error.message);
-  }
+    } catch (error) {
+        console.error('Universal AI function error:', error);
+        throw new functions.https.HttpsError('internal', 'Universal AI processing failed', error.message);
+    }
 });
