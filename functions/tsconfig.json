@@ -1,16 +1,17 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "noImplicitReturns": true,
-    "noUnusedLocals": false, // <--- CHANGED THIS LINE FROM TRUE TO FALSE
+    "noImplicitReturns": false,
+    "noUnusedLocals": false,
     "outDir": "lib",
     "sourceMap": true,
-    "strict": true,
-    "target": "es2020",
-    "esModuleInterop": true,
+    "strict": false,
+    "target": "es2017",
     "resolveJsonModule": true,
+    "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "noImplicitAny": false,
+    "allowJs": true
   },
   "compileOnSave": true,
   "include": [

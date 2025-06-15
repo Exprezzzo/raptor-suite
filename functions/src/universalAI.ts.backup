@@ -1,0 +1,13 @@
+// functions/src/universalAI.ts - MINIMAL VERSION FOR DEPLOYMENT
+import * as functions from 'firebase-functions';
+
+// Minimal universalAI function for deployment test
+export const universalAI = functions.https.onCall(async (data: any, context: any) => {
+    // This function simply echoes back what it received for testing purposes
+    const textInput = data.textInput || "No input provided.";
+    return {
+        aiResponse: `AI placeholder received: "${textInput}". Deploy success!`,
+        model: 'placeholder',
+        success: true
+    };
+});

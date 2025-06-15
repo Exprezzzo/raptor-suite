@@ -6,7 +6,7 @@ import * as admin from 'firebase-admin';
 import { getSecret } from 'firebase-functions/v2/secrets';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
-import { GoogleGenerativeAI } from '@google/generative-genAI'; // Corrected import
+import { GoogleGenerativeAI } from '@google/generative-ai'; 
 
 admin.initializeApp();
 const db = admin.firestore();

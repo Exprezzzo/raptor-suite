@@ -1,0 +1,18 @@
+// functions/src/index.ts - MINIMAL VERSION FOR DEPLOYMENT
+import * as functions from 'firebase-functions';
+import * as admin from 'firebase-admin';
+import cors from 'cors'; // Corrected import for cors
+
+admin.initializeApp();
+
+const corsHandler = cors({ origin: true }); // Allows all origins
+
+// Simple HTTP function to confirm deployment works
+export const helloWorld = functions.https.onRequest((request, response) => {
+  corsHandler(request, response, () => {
+    response.send("Hello from Raptor Suite!");
+  });
+});
+
+// Export universalAI from its minimal version
+export { universalAI } from './universalAI';
