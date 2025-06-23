@@ -13,7 +13,9 @@ app.use(cors);
 app.use(express.json());
 const anthropicKey = (0, params_1.defineSecret)('ANTHROPIC_API_KEY');
 const geminiKey = (0, params_1.defineSecret)('GEMINI_API_KEY');
+const openaiKey = (0, params_1.defineSecret)('OPENAI_API_KEY');
 app.post('*', async (req, res) => {
+    var _a, _b, _c;
     try {
         const { prompt, provider } = req.body;
         if (!prompt) {
@@ -21,7 +23,7 @@ app.post('*', async (req, res) => {
             return;
         }
         let resultText = '';
-        const choice = provider === 'gemini' ? 'gemini' : 'anthropic';
+        const choice = provider === 'gemini' ? 'gemini' : provider === 'openai' ? 'openai' : 'anthropic';
         if (choice === 'anthropic') {
             const key = await anthropicKey.value();
             const client = new sdk_1.default({ apiKey: key });
@@ -32,7 +34,7 @@ app.post('*', async (req, res) => {
             });
             resultText = message.content[0].type === 'text' ? message.content[0].text : '';
         }
-        else {
+        else if (choice === 'gemini') {
             const key = await geminiKey.value();
             const genAI = new generative_ai_1.GoogleGenerativeAI(key);
             const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
@@ -49,6 +51,28 @@ app.post('*', async (req, res) => {
             });
             resultText = result.response.text();
         }
+        else if (choice === 'openai') {
+            const key = await openaiKey.value();
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${key}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: 'gpt-4.1-mini',
+                    messages: [{ role: 'user', content: prompt }],
+                    max_tokens: 1024,
+                    temperature: 0.7
+                })
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`OpenAI API error: ${errorText}`);
+            }
+            const data = await response.json();
+            resultText = ((_c = (_b = (_a = data.choices) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.message) === null || _c === void 0 ? void 0 : _c.content) || '';
+        }
         res.json({ success: true, provider: choice, result: resultText });
     }
     catch (err) {
@@ -56,5 +80,5 @@ app.post('*', async (req, res) => {
         res.status(500).json({ success: false, error: err.message || 'Something went wrong' });
     }
 });
-exports.universalAI = (0, https_1.onRequest)({ secrets: ['ANTHROPIC_API_KEY', 'GEMINI_API_KEY'] }, app);
+exports.universalAI = (0, https_1.onRequest)({ secrets: ['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'OPENAI_API_KEY'] }, app);
 //# sourceMappingURL=universalAI.js.map
