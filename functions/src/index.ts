@@ -1,11 +1,4 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+import { universalAI } from './universalAI';
 
-// Export all functions
-export { universalAI } from './universalAI';
+// Required for Firebase to recognize backend configuration
+export const universalAIFunction = universalAI;
