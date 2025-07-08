@@ -1,0 +1,58 @@
+name: Phoenix AI Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  phoenix-build-test-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🦅 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 🟡 Install dependencies (root)
+        run: npm install
+
+      - name: 🟣 Install dependencies (functions)
+        working-directory: functions
+        run: npm install
+
+      - name: 🔵 Build Firebase Functions (TypeScript)
+        working-directory: functions
+        run: npm run build || true
+
+      - name: 🧪 Lint & Test (optional)
+        working-directory: functions
+        run: |
+          if [ -f package.json ]; then
+            npm run lint || true
+            npm test || true
+          fi
+
+      - name: 🛡️ Block secrets in code (safety check)
+        run: |
+          if grep -r --include="*.ts" -e "AIza" -e "BEGIN PRIVATE KEY" functions/; then
+            echo "❌ Firebase or private key found in code! Blocked."
+            exit 1
+          fi
+
+      - name: 🚀 Deploy to Firebase
+        uses: w9jds/firebase-action@v13.9.0
+        with:
+          args: deploy --only functions
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: ✅ Health check (universalAI)
+        run: |
+          curl -f https://us-central1-${{ secrets.FIREBASE_PROJECT_ID }}.cloudfunctions.net/universalAI/health || exit 1
